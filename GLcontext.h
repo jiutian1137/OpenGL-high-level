@@ -1,8 +1,7 @@
 /* clmagic/opengl/GLcontext:{
 	Author:"LongJiangnan",
 	Date:"2021",
-	Owner:"LongJiangnan",
-	License:"PI(Please identify the Owner)"
+	License:"Please identify Author"
 } */
 #pragma once
 
@@ -13,6 +12,7 @@
 
 class GLcontextBase {
 public:
+	GLcontextBase() = default;
 	GLcontextBase(HDC device) {
 		HDC _My_device = wglGetCurrentDC();
 		HGLRC _My_context = wglGetCurrentContext();
@@ -1703,6 +1703,7 @@ public:
 	glVertex4sv Vertex4sv;
 	glVertexPointer VertexPointer;
 	glViewport Viewport;
+	GLcontext110() = default;
 	explicit GLcontext110(HDC device) : GLcontextBase(device) {
 		// DefaultLoadLibrary("Windows/Sys____/opengl32.dll")
 		HMODULE opengl32 = GetModuleHandle(L"opengl32.dll");
@@ -2073,6 +2074,7 @@ public:
 	glDrawRangeElements DrawRangeElements;
 	glTexImage3D TexImage3D;
 	glTexSubImage3D TexSubImage3D;
+	GLcontext120() = default;
 	explicit GLcontext120(HDC device) : GLcontext110(device) {
 		this->CopyTexSubImage3D = reinterpret_cast<glCopyTexSubImage3D>(wglGetProcAddress("glCopyTexSubImage3D"));
 		this->DrawRangeElements = reinterpret_cast<glDrawRangeElements>(wglGetProcAddress("glDrawRangeElements"));
@@ -2240,6 +2242,7 @@ public:
 	glMultiTexCoord4s MultiTexCoord4s;
 	glMultiTexCoord4sv MultiTexCoord4sv;
 	glSampleCoverage SampleCoverage;
+	GLcontext130() = default;
 	explicit GLcontext130(HDC device) : GLcontext120(device) {
 		this->ActiveTexture = reinterpret_cast<glActiveTexture>(wglGetProcAddress("glActiveTexture"));
 		this->ClientActiveTexture = reinterpret_cast<glClientActiveTexture>(wglGetProcAddress("glClientActiveTexture"));
@@ -2425,6 +2428,7 @@ public:
 	glWindowPos3iv WindowPos3iv;
 	glWindowPos3s WindowPos3s;
 	glWindowPos3sv WindowPos3sv;
+	GLcontext140() = default;
 	explicit GLcontext140(HDC device) : GLcontext130(device) {
 		this->BlendColor = reinterpret_cast<glBlendColor>(wglGetProcAddress("glBlendColor"));
 		this->BlendEquation = reinterpret_cast<glBlendEquation>(wglGetProcAddress("glBlendEquation"));
@@ -2548,6 +2552,7 @@ public:
 	glIsQuery IsQuery;
 	glMapBuffer MapBuffer;
 	glUnmapBuffer UnmapBuffer;
+	GLcontext150() = default;
 	explicit GLcontext150(HDC device) : GLcontext140(device) {
 		this->BeginQuery = reinterpret_cast<glBeginQuery>(wglGetProcAddress("glBeginQuery"));
 		this->BindBuffer = reinterpret_cast<glBindBuffer>(wglGetProcAddress("glBindBuffer"));
@@ -2816,6 +2821,7 @@ public:
 	glVertexAttrib4uiv VertexAttrib4uiv;
 	glVertexAttrib4usv VertexAttrib4usv;
 	glVertexAttribPointer VertexAttribPointer;
+	GLcontext200() = default;
 	explicit GLcontext200(HDC device) : GLcontext150(device) {
 		this->AttachShader = reinterpret_cast<glAttachShader>(wglGetProcAddress("glAttachShader"));
 		this->BindAttribLocation = reinterpret_cast<glBindAttribLocation>(wglGetProcAddress("glBindAttribLocation"));
@@ -2947,6 +2953,7 @@ public:
 	glUniformMatrix3x4fv UniformMatrix3x4fv;
 	glUniformMatrix4x2fv UniformMatrix4x2fv;
 	glUniformMatrix4x3fv UniformMatrix4x3fv;
+	GLcontext210() = default;
 	explicit GLcontext210(HDC device) : GLcontext200(device) {
 		this->UniformMatrix2x3fv = reinterpret_cast<glUniformMatrix2x3fv>(wglGetProcAddress("glUniformMatrix2x3fv"));
 		this->UniformMatrix2x4fv = reinterpret_cast<glUniformMatrix2x4fv>(wglGetProcAddress("glUniformMatrix2x4fv"));
@@ -3222,6 +3229,7 @@ public:
 	glDeleteVertexArrays DeleteVertexArrays = nullptr;
 	glGenVertexArrays GenVertexArrays = nullptr;
 	glIsVertexArray IsVertexArray = nullptr;
+	GLcontext300() = default;
 	explicit GLcontext300(HDC device) : GLcontext210(device) {
 		this->BeginConditionalRender = reinterpret_cast<glBeginConditionalRender>(wglGetProcAddress("glBeginConditionalRender"));
 		this->BeginTransformFeedback = reinterpret_cast<glBeginTransformFeedback>(wglGetProcAddress("glBeginTransformFeedback"));
@@ -3386,6 +3394,7 @@ public:
 	glGetUniformBlockIndex GetUniformBlockIndex = nullptr;
 	glGetUniformIndices GetUniformIndices = nullptr;
 	glUniformBlockBinding UniformBlockBinding = nullptr;
+	GLcontext310() = default;
 	explicit GLcontext310(HDC device) : GLcontext300(device) {
 		this->DrawArraysInstanced = reinterpret_cast<glDrawArraysInstanced>(wglGetProcAddress("glDrawArraysInstanced"));
 		this->DrawElementsInstanced = reinterpret_cast<glDrawElementsInstanced>(wglGetProcAddress("glDrawElementsInstanced"));
@@ -3510,6 +3519,7 @@ public:
 	glGetQueryObjecti64v GetQueryObjecti64v = nullptr;
 	glGetQueryObjectui64v GetQueryObjectui64v = nullptr;
 	glQueryCounter QueryCounter = nullptr;
+	GLcontext320() = default;
 	explicit GLcontext320(HDC device) : GLcontext310(device) {
 		this->FramebufferTexture = reinterpret_cast<glFramebufferTexture>(wglGetProcAddress("glFramebufferTexture"));
 		this->GetBufferParameteri64v = reinterpret_cast<glGetBufferParameteri64v>(wglGetProcAddress("glGetBufferParameteri64v"));
@@ -3551,6 +3561,7 @@ class GLcontext330 : public GLcontext320 {
 	typedef void (_stdcall* glVertexAttribDivisor) (GLuint index, GLuint divisor);
 public:
 	glVertexAttribDivisor VertexAttribDivisor;
+	GLcontext330() = default;
 	explicit GLcontext330(HDC device) : GLcontext320(device) {
 		this->VertexAttribDivisor = reinterpret_cast<glVertexAttribDivisor>(wglGetProcAddress("glVertexAttribDivisor"));
 	}
@@ -3702,6 +3713,7 @@ public:
 	glDrawTransformFeedbackStream DrawTransformFeedbackStream = nullptr;
 	glEndQueryIndexed EndQueryIndexed = nullptr;
 	glGetQueryIndexediv GetQueryIndexediv = nullptr;
+	GLcontext400() = default;
 	explicit GLcontext400(HDC device) : GLcontext330(device) {
 		this->BlendEquationSeparatei = reinterpret_cast<glBlendEquationSeparatei>(wglGetProcAddress("glBlendEquationSeparatei"));
 		this->BlendEquationi       = reinterpret_cast<glBlendEquationi>(wglGetProcAddress("glBlendEquationi"));
@@ -3810,6 +3822,7 @@ public:
 	glVertexAttribL4d VertexAttribL4d = nullptr;
 	glVertexAttribL4dv VertexAttribL4dv = nullptr;
 	glVertexAttribLPointer VertexAttribLPointer = nullptr;
+	GLcontext410() = default;
 	explicit GLcontext410(HDC device) : GLcontext400(device) {
 		this->ClearDepthf = reinterpret_cast<glClearDepthf>(wglGetProcAddress("glClearDepthf"));
 		this->DepthRangef = reinterpret_cast<glDepthRangef>(wglGetProcAddress("glDepthRangef"));
@@ -3954,6 +3967,7 @@ public:
 	glTexStorage3D TexStorage3D = nullptr;
 	glDrawTransformFeedbackInstanced DrawTransformFeedbackInstanced = nullptr;
 	glDrawTransformFeedbackStreamInstanced DrawTransformFeedbackStreamInstanced = nullptr;
+	GLcontext420() = default;
 	explicit GLcontext420(HDC device) : GLcontext410(device) {
 		this->DrawElementsInstancedBaseVertexBaseInstance = reinterpret_cast<glDrawElementsInstancedBaseVertexBaseInstance>(wglGetProcAddress("glDrawElementsInstancedBaseVertexBaseInstance"));
 		this->DrawElementsInstancedBaseInstance = reinterpret_cast<glDrawElementsInstancedBaseInstance>(wglGetProcAddress("glDrawElementsInstancedBaseInstance"));
@@ -4005,6 +4019,7 @@ public:
 	glShaderStorageBlockBinding ShaderStorageBlockBinding;
 	glTexStorage2DMultisample TexStorage2DMultisample;
 	glTexStorage3DMultisample TexStorage3DMultisample;
+	GLcontext430() = default;
 	explicit GLcontext430(HDC device) : GLcontext420(device) {
 		this->ClearBufferData = reinterpret_cast<glClearBufferData>(wglGetProcAddress("glClearBufferData"));
 		this->ClearBufferSubData = reinterpret_cast<glClearBufferSubData>(wglGetProcAddress("glClearBufferSubData"));
@@ -4030,6 +4045,7 @@ public:
 	glClearTexSubImage ClearTexSubImage = nullptr;
 	glBindBuffersBase BindBuffersBase = nullptr;
 	glBindBuffersRange BindBuffersRange = nullptr;
+	GLcontext440() = default;
 	explicit GLcontext440(HDC device) : GLcontext430(device) {
 		this->ClearTexImage = reinterpret_cast<glClearTexImage>(wglGetProcAddress("glClearTexImage"));
 		this->ClearTexSubImage = reinterpret_cast<glClearTexSubImage>(wglGetProcAddress("glClearTexSubImage"));
@@ -4073,6 +4089,7 @@ public:
 	glClearNamedBufferDataEXT ClearNamedBufferDataEXT = nullptr;
 	glMemoryBarrierByRegion MemoryBarrierByRegion = nullptr;
 	glTextureBarrier TextureBarrier = nullptr;
+	GLcontext450() = default;
 	explicit GLcontext450(HDC device) : GLcontext440(device) {
 		this->GetGraphicsResetStatus = reinterpret_cast<glGetGraphicsResetStatus>(wglGetProcAddress("glGetGraphicsResetStatus"));
 		this->GetnCompressedTexImage = reinterpret_cast<glGetnCompressedTexImage>(wglGetProcAddress("glGetnCompressedTexImage"));
@@ -4121,6 +4138,7 @@ public:
 	glMultiDrawArraysIndirectCount MultiDrawArraysIndirectCount;
 	glMultiDrawElementsIndirectCount MultiDrawElementsIndirectCount;
 	glSpecializeShader SpecializeShader;
+	GLcontext460() = default;
 	explicit GLcontext460(HDC device) : GLcontext450(device) {
 		this->MultiDrawArraysIndirectCount = reinterpret_cast<glMultiDrawArraysIndirectCount>(wglGetProcAddress("glMultiDrawArraysIndirectCount"));
 		this->MultiDrawElementsIndirectCount = reinterpret_cast<glMultiDrawElementsIndirectCount>(wglGetProcAddress("glMultiDrawElementsIndirectCount"));
@@ -4159,6 +4177,7 @@ public:
 	glDispatchCompute DispatchCompute = nullptr;
 	glDispatchComputeIndirect DispatchComputeIndirect = nullptr;
 	glDispatchComputeGroupSizeARB DispatchComputeGroupSizeARB = nullptr;
+	GLcontextCompute() = default;
 	explicit GLcontextCompute(HDC device) : GLcontextBase(device) {
 		this->DispatchCompute = reinterpret_cast<glDispatchCompute>(wglGetProcAddress("glDispatchCompute"));
 		this->DispatchComputeIndirect = reinterpret_cast<glDispatchComputeIndirect>(wglGetProcAddress("glDispatchComputeIndirect"));

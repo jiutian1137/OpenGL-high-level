@@ -1,8 +1,7 @@
 /* clmagic/opengl/GLhighestlevel:{
 	Author:"LongJiangnan",
 	Date:"2021",
-	Owner:"LongJiangnan",
-	License:"PI(Please identify the Owner)"
+	License:"Please identify Author"
 } */
 #pragma once
 
@@ -190,7 +189,7 @@ public:
 	) {
 		_Mybase::CreateBuffer(GL_ARRAY_BUFFER, vertex_data_usage, sizeof(Vertex) * vertex_count,
 			std::ref(geometry.vertex_data));
-		_Mybase::BindBuffer(geometry.vertices, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
 		_Mybase::UploadBuffer(vertex_data, GPUlocation(GL_ARRAY_BUFFER));
 		geometry.vertex_structure = vertex_structure;
 		geometry.vertex_count = vertex_count;
@@ -246,11 +245,13 @@ public:
 
 	void DrawGeometry(const GLgeometry& geometry) {
 		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::SetVaryingRegisters(geometry.vertex_structure);
 		_Mybase::DrawArrays(geometry.primitive_type, 0, geometry.vertex_count);
 	}
 
 	void DrawGeometry(const GLgeometry_indexed& geometry) {
 		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::SetVaryingRegisters(geometry.vertex_structure);
 		_Mybase::BindBuffer(geometry.index_data, GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
 		_Mybase::DrawElements(geometry.primitive_type, geometry.index_count, geometry.index_type, nullptr);
 	}

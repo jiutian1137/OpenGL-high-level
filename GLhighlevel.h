@@ -1,8 +1,7 @@
 /* clmagic/opengl/GLhighlevel:{
 	Author:"LongJiangnan",
 	Date:"2021",
-	Owner:"LongJiangnan",
-	License:"PI(Please identify the Owner)"
+	License:"Please identify Author"
 } */
 #pragma once
 
@@ -52,7 +51,9 @@ public:
 	}
 
 	void release() {
-		_Mydeleter->DeleteBuffer(*this);
+		if (_Mydeleter) {
+			_Mydeleter->DeleteBuffer(*this);
+		}
 	}
 	
 	void swap(GLbuffer& right) {
@@ -125,7 +126,9 @@ public:
 	}		
 
 	void release() {
-		_Mydeleter->DeleteTexture(*this);
+		if (_Mydeleter) {
+			_Mydeleter->DeleteTexture(*this);
+		}
 	}
 	
 	void swap(GLtexture& right) {
@@ -148,7 +151,8 @@ public:
 
 #include "GLSLinterpreter.h"
 
-struct GLshader { 
+class GLshader { 
+public:
 	GLuint identifier = GL_INVALID_INDEX;
 	GLenum target = GL_NONE;
 	std::string source;
@@ -185,7 +189,9 @@ struct GLshader {
 	}
 	
 	void release() {
-		_Mydeleter->DeleteShader(*this);
+		if (_Mydeleter) {
+			_Mydeleter->DeleteShader(*this);
+		}
 	}
 	
 	void swap(GLshader& right) {
@@ -259,7 +265,9 @@ public:
 	}
 	
 	void release() {
-		_Mydeleter->DeleteProgram(*this);
+		if (_Mydeleter) {
+			_Mydeleter->DeleteProgram(*this);
+		}
 	}
 	
 	void swap(GLprogram& right) {
@@ -273,6 +281,7 @@ public:
 		std::swap(this->rendertargets, right.rendertargets);
 	}
 };
+
 
 
 
@@ -293,7 +302,44 @@ class GLhighlevel : public GLhighlevelCommandInterface {
 public:
 	_ContextTy gl;
 
+	GLhighlevel() = default;
+
 	explicit GLhighlevel(HDC device) : gl(device) {}
+
+	void EnablePointSpirit() {
+		gl.Enable(GL_POINT_SPRITE);
+	}
+
+	void DisablePointSpirit() {
+		gl.Disable(GL_POINT_SPRITE);
+	}
+
+	void EnableDepthTest() {
+		gl.Enable(GL_DEPTH_TEST);
+	}
+
+	void DisableDepthTest() {
+		gl.Disable(GL_DEPTH_TEST);
+	}
+
+	void EnableBlend(GLenum sfactor, GLenum dfactor, GLenum mode) {
+		gl.Enable(GL_BLEND);
+		gl.BlendFunc(sfactor, dfactor);
+		gl.BlendEquation(mode);
+	}
+
+	void DisableBlend() {
+		gl.Disable(GL_BLEND);
+	}
+
+	void RasterizeMode(GLenum mode) {
+		gl.PolygonMode(GL_FRONT_AND_BACK, mode);
+	}
+
+	void Clear(GLbitfield mask) {
+		gl.Clear(mask);
+	}
+
 
 	virtual 
 	void DeleteBuffer(GLbuffer& buffer) {
@@ -484,6 +530,7 @@ public:
 		gl.TexParameteri(target, GL_TEXTURE_WRAP_T, wrapy);
 		gl.TexParameteri(target, GL_TEXTURE_MIN_FILTER, minfilter);
 		gl.TexParameteri(target, GL_TEXTURE_MAG_FILTER, magfilter);
+		gl.GenerateMipmap(target);
 		gl.BindTexture(target, 0);
 		assert( gl.IsTexture(texture) );
 		texture.target = target;
@@ -543,11 +590,11 @@ public:
 		return gl.IsTexture(texture);
 	}
 
-	bool BindTexture(const GLtexture& texture, GPUlocation location) {
+	void BindTexture(const GLtexture& texture, GPUlocation location) {
 		gl.BindTexture(location.target, texture.identifier);
 	}
 
-	bool BindTexture(const GLtexture& texture, GPUlocationi location) {
+	void BindTexture(const GLtexture& texture, GPUlocationi location) {
 		gl.ActiveTexture(GL_TEXTURE0 + location.index);
 		gl.BindTexture(location.target, texture.identifier);
 	}
@@ -729,7 +776,7 @@ public:
 				sizeof_v = sizeof(int) * size;
 			}
 
-			if (inputlayout.size() <= location) {
+			if (inputlayout.size() <= size_t(location)) {
 				inputlayout.resize(location + 1);
 			}
 			inputlayout[location] = { size, type, GL_FALSE, sizeof_v, 0/*bytes*/ };
@@ -741,13 +788,18 @@ public:
 	}
 
 	void CreateProgram(const std::string& vertex_shader_source, const std::string& fragment_shader_source, GLprogram& program) {
-		GLshader vertex_shader;
-		CreateShader(GL_VERTEX_SHADER, vertex_shader_source, std::ref(vertex_shader));
-
-		GLshader fragment_shader;
-		CreateShader(GL_FRAGMENT_SHADER, fragment_shader_source, std::ref(fragment_shader));
+		std::vector<GLshader> shaders;
+		shaders.resize(2);
 		
-		CreateProgram({ std::move(vertex_shader), std::move(fragment_shader) }, std::ref(program));
+		CreateShader(GL_VERTEX_SHADER, vertex_shader_source, std::ref(shaders[0]));
+
+		CreateShader(GL_FRAGMENT_SHADER, fragment_shader_source, std::ref(shaders[1]));
+		
+		CreateProgram(shaders, std::ref(program));
+	}
+
+	void CreateProgram(const std::filesystem::path& vertex_shader_filename, const std::filesystem::path& fragment_shader_filename, GLprogram& program) {
+		CreateProgram(GLSLpreprocessor::read_file(vertex_shader_filename), GLSLpreprocessor::read_file(fragment_shader_filename), std::ref(program));
 	}
 
 	void BindProgram(const GLprogram& program) {

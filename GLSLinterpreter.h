@@ -1,8 +1,7 @@
 /* clmagic/opengl/GLSLinterpreter:{
 	Author:"LongJiangnan",
 	Date:"2021",
-	Owner:"LongJiangnan",
-	License:"PI(Please identify the Owner)"
+	License:"Please identify Author"
 } */
 #pragma once
 
