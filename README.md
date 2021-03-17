@@ -4,5 +4,5 @@ opengl cast to modern graphics interface
 	Author:"LongJiangnan",
 	Date:"2021",
 	Owner:"LongJiangnan",
-	License:"PI(Please identify the Owner)"
+	License:"Please identify"
 } */
