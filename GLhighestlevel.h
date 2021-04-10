@@ -39,11 +39,22 @@ public:
 
 class GLgeometry_indexed : public GLgeometry {
 public:
-	// index property
 	GLbuffer index_data;
 	GLenum   index_type = GL_UNSIGNED_INT;
 	GLsizei  index_count = 0;
 };
+
+class GLgeometrypatch : public GLgeometry {
+public:
+	GLsizei patch_vertices;
+};
+
+class GLgeometrypatch_indexed : public GLgeometry_indexed {
+public:
+	GLsizei patch_vertices;
+};
+
+
 
 class GLmaterial {
 public:
@@ -174,11 +185,13 @@ public:
 	}
 };
 
-//using _ContextTy = GLcontext420;
-template<typename _ContextTy = GLcontext420>
+//using _ContextTy = GLcontext440;
+template<typename _ContextTy>
 class GLhighestlevel : public GLhighlevel<_ContextTy> {
 	using _Mybase = GLhighlevel<_ContextTy>;
 public:
+	GLhighestlevel() = default;
+
 	explicit GLhighestlevel(HDC device) : _Mybase(device) {}
 
 	template<typename Vertex>
@@ -187,34 +200,73 @@ public:
 		GLenum primitive_type, 
 		GLgeometry& geometry
 	) {
-		_Mybase::CreateBuffer(GL_ARRAY_BUFFER, vertex_data_usage, sizeof(Vertex) * vertex_count,
-			std::ref(geometry.vertex_data));
-		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
-		_Mybase::UploadBuffer(vertex_data, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::CreateBuffer(GL_ARRAY_BUFFER, vertex_data_usage, sizeof(Vertex) * vertex_count, 
+			(geometry.vertex_data));
+		_Mybase::BindBuffer(geometry.vertex_data, 
+			GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::UploadBuffer(vertex_data, 
+			GPUlocation(GL_ARRAY_BUFFER));
 		geometry.vertex_structure = vertex_structure;
 		geometry.vertex_count = vertex_count;
 		geometry.primitive_type = primitive_type;
 	}
 
 	template<typename Vertex, typename Integer>
-	void CreateGeometry(
+	void CreateIndexedGeometry(
 		const std::vector<GLvarying_register>& vertex_structure, const Vertex* vertex_data, size_t vertex_count, GLenum vertex_data_usage,
 		const Integer* index_data, size_t index_count, GLenum index_data_usage,
 		GLenum primitive_type,
 		GLgeometry_indexed& geometry
 	) {
-		CreateGeometry(vertex_structure, vertex_data, vertex_count, vertex_data_usage, 
-			primitive_type, 
+		CreateGeometry(vertex_structure, vertex_data, vertex_count, vertex_data_usage, primitive_type, 
 			std::ref(geometry) );
 
-		_Mybase::CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, index_data_usage, sizeof(Integer) * index_count,
-			std::ref(geometry.index_data));
-		_Mybase::BindBuffer(geometry.index_data, GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
-		_Mybase::UploadBuffer(index_data, GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
-		geometry.index_type = (sizeof(Integer) == 2) 
-							? GL_UNSIGNED_SHORT 
-							: (sizeof(Integer) == 4 ? GL_UNSIGNED_INT : 0);
+		_Mybase::CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, index_data_usage, sizeof(Integer) * index_count, 
+			(geometry.index_data));
+		_Mybase::BindBuffer(geometry.index_data, 
+			GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
+		_Mybase::UploadBuffer(index_data, 
+			GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
+		geometry.index_type = std::is_same_v<Integer, unsigned int> ? GL_UNSIGNED_INT : (std::is_same_v<Integer, unsigned short> ? GL_UNSIGNED_SHORT : GL_NONE);
 		geometry.index_count = index_count;
+	}
+
+	template<typename Vertex>
+	void CreateGeometryPatch(
+		const std::vector<GLvarying_register>& vertex_structure, const Vertex* vertex_data, size_t vertex_count, GLenum vertex_data_usage,
+		GLsizei patch_vertices,
+		GLgeometrypatch& geometry
+	) {
+		CreateGeometry(vertex_structure, vertex_data, vertex_count, vertex_data_usage, GL_PATCHES, 
+			std::ref(geometry) );
+		geometry.patch_vertices = patch_vertices;
+	}
+
+	template<typename Vertex, typename Integer>
+	void CreateIndexedGeometryPatch(
+		const std::vector<GLvarying_register>& vertex_structure, const Vertex* vertex_data, size_t vertex_count, GLenum vertex_data_usage,
+		const Integer* index_data, size_t index_count, GLenum index_data_usage,
+		GLsizei patch_vertices,
+		GLgeometrypatch_indexed& geometry
+	) {
+		CreateIndexedGeometry(vertex_structure, vertex_data, vertex_count, vertex_data_usage, 
+			index_data, index_count, index_data_usage, GL_PATCHES,
+			std::ref(geometry));
+		geometry.patch_vertices = patch_vertices;
+	}
+
+	void DeleteGeometry(GLgeometry& geometry) {
+		_Mybase::DeleteBuffer(geometry.vertex_data);
+	}
+
+	void DeleteIndexedGeometry(GLgeometry_indexed& geometry) {
+		_Mybase::DeleteBuffer(geometry.vertex_data);
+		_Mybase::DeleteBuffer(geometry.index_data);
+	}
+
+	void DeleteMaterial(GLmaterial& material) {
+		material._My_textures.clear();
+		material._My_ublocks.clear();
 	}
 
 	void BindMaterial(const GLmaterial& material) {
@@ -256,6 +308,21 @@ public:
 		_Mybase::DrawElements(geometry.primitive_type, geometry.index_count, geometry.index_type, nullptr);
 	}
 
+	void DrawGeometry(const GLgeometrypatch& geometry) {
+		_Mybase::SetPatchi(GL_PATCH_VERTICES, geometry.patch_vertices);
+		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::SetVaryingRegisters(geometry.vertex_structure);
+		_Mybase::DrawArrays(geometry.primitive_type, 0, geometry.vertex_count);
+	}
+
+	void DrawGeometry(const GLgeometrypatch_indexed& geometry) {
+		_Mybase::SetPatchi(GL_PATCH_VERTICES, geometry.patch_vertices);
+		_Mybase::BindBuffer(geometry.vertex_data, GPUlocation(GL_ARRAY_BUFFER));
+		_Mybase::SetVaryingRegisters(geometry.vertex_structure);
+		_Mybase::BindBuffer(geometry.index_data, GPUlocation(GL_ELEMENT_ARRAY_BUFFER));
+		_Mybase::DrawElements(geometry.primitive_type, geometry.index_count, geometry.index_type, nullptr);
+	}
+
 	template<typename _Iter, typename _Fn1, typename _Fn2>
 	void DrawObjects(const GLprogram& renderer, _Iter object_first, _Iter object_last, _Fn1 setup_function, _Fn2 render_function) {
 		// setup processor
@@ -268,3 +335,6 @@ public:
 		}
 	}
 };
+
+using GLhighestlevel330 = GLhighestlevel<GLcontext330>;
+using GLhighestlevel440 = GLhighestlevel<GLcontext440>;

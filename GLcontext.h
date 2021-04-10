@@ -13,6 +13,7 @@
 class GLcontextBase {
 public:
 	GLcontextBase() = default;
+	
 	GLcontextBase(HDC device) {
 		HDC _My_device = wglGetCurrentDC();
 		HGLRC _My_context = wglGetCurrentContext();
@@ -25,6 +26,14 @@ public:
 		if ( _My_device != device ) { 
 			wglMakeCurrent(device, _My_context); 
 		}
+	}
+
+	HGLRC GetCurrentContext() {
+		return wglGetCurrentContext();
+	}
+
+	HDC GetCurrentDC() {
+		return wglGetCurrentDC();
 	}
 };
 

@@ -296,8 +296,8 @@ struct GPUlocationi {
 	GPUlocationi(GLenum target, GLuint index) : target(target), index(index) {}
 };
 
-//using _ContextTy = GLcontext420;
-template<typename _ContextTy = GLcontext420>
+//using _ContextTy = GLcontext440;
+template<typename _ContextTy>
 class GLhighlevel : public GLhighlevelCommandInterface {
 public:
 	_ContextTy gl;
@@ -306,12 +306,25 @@ public:
 
 	explicit GLhighlevel(HDC device) : gl(device) {}
 
+public: // Global Setting
+	GLenum GetError() {
+		return gl.GetError();
+	}
+
 	void EnablePointSpirit() {
 		gl.Enable(GL_POINT_SPRITE);
 	}
 
 	void DisablePointSpirit() {
 		gl.Disable(GL_POINT_SPRITE);
+	}
+	
+	void EnableProgramPointSize() {
+		gl.Enable(GL_PROGRAM_POINT_SIZE);
+	}
+
+	void DisableProgramPointSize() {
+		gl.Disable(GL_PROGRAM_POINT_SIZE);
 	}
 
 	void EnableDepthTest() {
@@ -332,15 +345,33 @@ public:
 		gl.Disable(GL_BLEND);
 	}
 
+	// GL_POLYGON, GL_LINE, GL_POINT
 	void RasterizeMode(GLenum mode) {
 		gl.PolygonMode(GL_FRONT_AND_BACK, mode);
+	}
+
+public: // Global Setting
+	void SetClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
+		gl.ClearColor(r, g, b, a);
+	}
+
+	void SetClearDepth(GLclampd depth) {
+		gl.ClearDepth(depth);
+	}
+
+	void SetClearStencil(GLint s) {
+		gl.ClearStencil(s);
 	}
 
 	void Clear(GLbitfield mask) {
 		gl.Clear(mask);
 	}
 
+	void SetPatchi(GLenum pname, GLint param) {
+		gl.PatchParameteri(pname, param);
+	}
 
+public: // Highlevel Buffer
 	virtual 
 	void DeleteBuffer(GLbuffer& buffer) {
 		if ( gl.IsBuffer(buffer) ) {
@@ -348,6 +379,7 @@ public:
 			buffer.identifier = GL_INVALID_INDEX;
 			buffer.bytesize   = 0;
 			buffer.usage      = GL_NONE;
+			buffer._Mydeleter = nullptr;
 		}
 	}
 
@@ -370,7 +402,7 @@ public:
 	
 	// alloc GPUmemory[target,usage](bytesize)
 	void CreateBuffer(GLenum target, GLenum usage, GLsizei bytesize, GLbuffer& buffer) {
-		CreateBuffer(target, usage, bytesize, nullptr, std::ref(buffer));
+		CreateBuffer(target, usage, bytesize, nullptr, (buffer));
 	}
 
 	// Return true if buffer valid
@@ -412,7 +444,6 @@ public:
 		gl.BindBuffer(GL_COPY_WRITE_BUFFER, destination);
 		gl.CopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, soffset, doffset, copybytess);
 	}
-
 
 	// Set GPU-registers, that is global properties
 	void SetVaryingRegisters(const GLvarying_register* register_array, size_t array_size) {
@@ -471,6 +502,11 @@ public:
 		}
 	}
 
+public: // Highlevel Texture
+	// 1, 2, 4, 8, ...
+	void SetPixelAlignment(GLint alignment) {
+		gl.PixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+	}
 
 	virtual 
 	void DeleteTexture(GLtexture& texture) {
@@ -488,6 +524,7 @@ public:
 			texture.wrapz     = GL_NONE;
 			texture.minfilter = GL_NONE;
 			texture.magfilter = GL_NONE;
+			texture._Mydeleter = nullptr;
 		}
 	}
 
@@ -547,11 +584,11 @@ public:
 	}
 
 	void CreateTexture2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLtexture& texture) {
-		CreateTexture2D(target, internalformat, width, height, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, std::ref(texture));
+		CreateTexture2D(target, internalformat, width, height, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, (texture));
 	}
 
 	void CreateTexture2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLconstimage image, GLtexture& texture) {
-		CreateTexture2D(target, internalformat, width, height, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, image, std::ref(texture));
+		CreateTexture2D(target, internalformat, width, height, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, image, (texture));
 	}
 
 	void CreateTexture3D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum wrapx, GLenum wrapy, GLenum wrapz, GLenum minfilter, GLenum magfilter, GLtexture& texture) {
@@ -583,7 +620,7 @@ public:
 	}
 
 	void CreateTexture3D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLtexture& texture) {
-		CreateTexture3D(target, internalformat, width, height, depth, GL_REPEAT, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, std::ref(texture));
+		CreateTexture3D(target, internalformat, width, height, depth, GL_REPEAT, GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR, (texture));
 	}
 
 	bool IsTexture(const GLtexture& texture) {
@@ -625,13 +662,14 @@ public:
 		gl.GetTexImage(location.target, 0, image.format, image.type, image.pixels());
 	}
 
-
+public: // Highlevel Shader
 	virtual 
 	void DeleteShader(GLshader& shader) {
 		if ( gl.IsShader(shader) ) {
 			gl.DeleteShader(shader);
 			shader.identifier = GL_INVALID_INDEX;
 			shader.target     = GL_NONE;
+			shader._Mydeleter = nullptr;
 		}
 	}
 	
@@ -675,6 +713,7 @@ public:
 			program.rasterizer_state = GLrasterizer_state();
 			program.blend_state[0] = GLblend_state();
 			program.rendertargets = 1;
+			program._Mydeleter = nullptr;
 		}
 	}
 	
@@ -791,15 +830,15 @@ public:
 		std::vector<GLshader> shaders;
 		shaders.resize(2);
 		
-		CreateShader(GL_VERTEX_SHADER, vertex_shader_source, std::ref(shaders[0]));
+		CreateShader(GL_VERTEX_SHADER, vertex_shader_source, (shaders[0]));
 
-		CreateShader(GL_FRAGMENT_SHADER, fragment_shader_source, std::ref(shaders[1]));
+		CreateShader(GL_FRAGMENT_SHADER, fragment_shader_source, (shaders[1]));
 		
-		CreateProgram(shaders, std::ref(program));
+		CreateProgram(shaders, (program));
 	}
 
 	void CreateProgram(const std::filesystem::path& vertex_shader_filename, const std::filesystem::path& fragment_shader_filename, GLprogram& program) {
-		CreateProgram(GLSLpreprocessor::read_file(vertex_shader_filename), GLSLpreprocessor::read_file(fragment_shader_filename), std::ref(program));
+		CreateProgram(GLSLpreprocessor::read_file(vertex_shader_filename), GLSLpreprocessor::read_file(fragment_shader_filename), (program));
 	}
 
 	void BindProgram(const GLprogram& program) {
@@ -823,6 +862,66 @@ public:
 		}
 	}
 
+	void Uniform2f(GLint location, GLfloat v0, GLfloat v1) {
+		gl.Uniform2f(location, v0, v1);
+	}
+
+	void Uniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) {
+		gl.Uniform3f(location, v0, v1, v2);
+	}
+
+	void Uniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) {
+		gl.Uniform4f(location, v0, v1, v2, v3);
+	}
+
+	void Uniform2fv(GLint location, GLsizei count, const GLfloat* value) {
+		gl.Uniform2fv(location, count, value);
+	}
+
+	void Uniform3fv(GLint location, GLsizei count, const GLfloat* value) {
+		gl.Uniform3fv(location, count, value);
+	}
+
+	void Uniform4fv(GLint location, GLsizei count, const GLfloat* value) {
+		gl.Uniform4fv(location, count, value);
+	}
+
+	void Uniform2dv(GLint location, GLsizei count, const GLdouble* value) {
+		gl.Uniform2dv(location, count, value);
+	}
+
+	void Uniform3dv(GLint location, GLsizei count, const GLdouble* value) {
+		gl.Uniform3dv(location, count, value);
+	}
+
+	void Uniform4dv(GLint location, GLsizei count, const GLdouble* value) {
+		gl.Uniform4dv(location, count, value);
+	}
+
+	void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+		gl.UniformMatrix2fv(location, count, transpose, value);
+	}
+
+	void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+		gl.UniformMatrix3fv(location, count, transpose, value);
+	}
+
+	void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+		gl.UniformMatrix4fv(location, count, transpose, value);
+	}
+	
+	void UniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+		gl.UniformMatrix2dv(location, count, transpose, value);
+	}
+
+	void UniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+		gl.UniformMatrix3dv(location, count, transpose, value);
+	}
+
+	void UniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+		gl.UniformMatrix4dv(location, count, transpose, value);
+	}
+
 	void DrawArrays(GLenum mode, GLint first, GLsizei count) {
 		gl.DrawArrays(mode, first, count);
 	}
@@ -831,6 +930,8 @@ public:
 		gl.DrawElements(mode, count, type, indices);
 	}
 };
+
+using GLhighlevel440 = GLhighlevel<GLcontext440>;
 
 /*<note>
 								readonly  read_write     readonly        readonly
