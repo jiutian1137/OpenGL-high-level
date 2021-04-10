@@ -1,8 +1,8 @@
-/* clmagic/opengl/GLcontext:{
-	Author:"LongJiangnan",
-	Date:"2021",
-	License:"Please identify Author"
-} */
+/*{ "clmagic/opengl/GLcontext":{
+  "Author": "LongJiangnan",
+  "Date":   "2021",
+  "License": "Please identify Author"
+} }*/
 #pragma once
 
 #include <assert.h>

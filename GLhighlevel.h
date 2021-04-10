@@ -1,8 +1,8 @@
-/* clmagic/opengl/GLhighlevel:{
-	Author:"LongJiangnan",
-	Date:"2021",
-	License:"Please identify Author"
-} */
+/*{ "clmagic/opengl/GLhighlevel":{
+  "Author":"LongJiangnan",
+  "Date":"2021",
+  "License":"Please identify Author"
+} }*/
 #pragma once
 
 
