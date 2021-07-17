@@ -1,4 +1,4 @@
-# opengl_highlevel
+# opengl highlevel
 opengl cast to modern graphics interface
 { "clmagic/opengl":{
   "Author":"LongJiangnan",
